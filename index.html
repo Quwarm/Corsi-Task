@@ -139,6 +139,10 @@
             margin-bottom: 10px;
         }
 
+        #defaultSettingsBtn {
+            margin-top: 20px;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 15px;
@@ -151,7 +155,7 @@
             .settings input,
             .settings button {
                 font-size: 1em;
-                padding: 6px;
+                padding: 10px;
             }
 
             .block {
@@ -184,8 +188,12 @@
         <div class="result" id="result">Status</div>
         <div class="settings">
             <button id="startBtn">Start</button>
-             <label>
+            <label>
                 <input type="checkbox" id="backwardTaskType"> <span>Backward</span>
+            </label>
+            <label>
+                Initial block count:
+                <input type="number" id="blockCount" min="1" max="100" value="3">
             </label>
             <label>
                 Grid rows:
@@ -194,10 +202,6 @@
             <label>
                 Grid cols:
                 <input type="number" id="gridCols" min="2" max="6" value="3">
-            </label>
-            <label>
-                Initial block count:
-                <input type="number" id="blockCount" min="1" max="100" value="3">
             </label>
             <label>
                 Show trial time (ms):
@@ -211,6 +215,7 @@
                 Answer time limit per trial (ms):
                 <input type="number" id="answerTime" min="1" max="100000" value="1000">
             </label>
+            <button id="defaultSettingsBtn">Default settings</button>
         </div>
     </div>
     <script>
@@ -226,6 +231,7 @@
             const hideTrialTimeInput = document.getElementById('hideTrialTime');
             const answerTimeInput = document.getElementById('answerTime');
             const backwardTaskTypeToggle = document.getElementById('backwardTaskType');
+            const defaultSettingsBtn = document.getElementById('defaultSettingsBtn');
 
             let sequence = [];
             let userSequence = [];
@@ -243,6 +249,18 @@
                 localStorage.setItem('cbtt_hideTrialTime', hideTrialTimeInput.value);
                 localStorage.setItem('cbtt_answerTime', answerTimeInput.value);
                 localStorage.setItem('cbtt_backward', backwardTaskTypeToggle.checked);
+            }
+
+            function defaultSettings() {
+                localStorage.setItem('cbtt_gridRows', '3');
+                localStorage.setItem('cbtt_gridCols', '3');
+                localStorage.setItem('cbtt_blockCount', '3');
+                localStorage.setItem('cbtt_showTrialTime', '1000');
+                localStorage.setItem('cbtt_hideTrialTime', '1000');
+                localStorage.setItem('cbtt_answerTime', '1000');
+                localStorage.setItem('cbtt_backward', 'false');
+                loadSettings();
+                createBoard();
             }
 
             function loadSettings() {
@@ -327,7 +345,7 @@
                     }, parseInt(showTrialTimeInput.value)));
                 }
 
-                nextBlock();
+                setTimeout(() => nextBlock(), 750);
             }
 
             function startAnswerTimer() {
@@ -402,7 +420,7 @@
                 setTimeout(() => {
                     generateSequence();
                     showSequence();
-                }, 1750);
+                }, 1000);
             }
 
             function stopGame() {
@@ -454,6 +472,8 @@
             [blockCountInput, showTrialTimeInput, answerTimeInput, backwardTaskTypeToggle].forEach(input => {
                 input.addEventListener('change', saveSettings);
             });
+
+            defaultSettingsBtn.addEventListener('click', defaultSettings);
 
             loadSettings();
             createBoard();
