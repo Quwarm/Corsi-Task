@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corsi Block-Tapping Task</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .settings {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .settings label {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.9em;
+        }
+
+        .settings input {
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 1em;
+            background: #333;
+            color: #e0e0e0;
+            text-align: center;
+        }
+
+        .settings button {
+            padding: 10px;
+            background-color: #2ecc71;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .settings button:hover {
+            background-color: #27ae60;
+        }
+
+        .settings button.stop {
+            background-color: #e74c3c;
+        }
+
+        .settings button.stop:hover {
+            background-color: #c0392b;
+        }
+
+        .game {
+            display: grid;
+            gap: 12px;
+            place-content: center;
+            margin: 0 auto 20px;
+            padding: 10px;
+        }
+
+        .block {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #444, #333);
+            border-radius: 8px;
+            box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(100, 100, 100, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        .block:hover {
+            transform: scale(1.05);
+        }
+
+        .block.active {
+            background: linear-gradient(145deg, #27ae60, #219653);
+            box-shadow: 0 0 10px rgba(39, 174, 96, 0.8);
+            transform: scale(1.1);
+        }
+
+        .block.correct {
+            background: linear-gradient(145deg, #2ecc71, #27ae60);
+            box-shadow: 0 0 12px rgba(46, 204, 113, 0.9);
+        }
+
+        .block.incorrect {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            box-shadow: 0 0 12px rgba(231, 76, 60, 0.9);
+        }
+
+        .result {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .timer {
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.2em;
+            }
+
+            .settings input,
+            .settings button {
+                font-size: 0.9em;
+                padding: 6px;
+            }
+
+            .block {
+                width: 50px;
+                height: 50px;
+            }
+
+            .game {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .block {
+                width: 40px;
+                height: 40px;
+            }
+
+            .game {
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Corsi Block-Tapping Task</h1>
+        <div class="game" id="gameBoard"></div>
+        <div class="timer" id="timer">Time</div>
+        <div class="result" id="result">Status</div>
+        <div class="settings">
+            <button id="startBtn">Start</button>
+            <label>
+                Grid rows:
+                <input type="number" id="gridRows" min="2" max="6" value="3">
+            </label>
+            <label>
+                Grid cols:
+                <input type="number" id="gridCols" min="2" max="6" value="3">
+            </label>
+            <label>
+                Initial block count:
+                <input type="number" id="blockCount" min="1" max="100" value="3">
+            </label>
+            <label>
+                Show trial time (ms):
+                <input type="number" id="showTrialTime" min="1" max="100000" value="1000">
+            </label>
+            <label>
+                Hide trial time (ms):
+                <input type="number" id="hideTrialTime" min="1" max="100000" value="1000">
+            </label>
+            <label>
+                Answer time limit per trial (ms):
+                <input type="number" id="answerTime" min="1" max="100000" value="1000">
+            </label>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameBoard = document.getElementById('gameBoard');
+            const startBtn = document.getElementById('startBtn');
+            const resultDiv = document.getElementById('result');
+            const timerDiv = document.getElementById('timer');
+            const gridRowsInput = document.getElementById('gridRows');
+            const gridColsInput = document.getElementById('gridCols');
+            const blockCountInput = document.getElementById('blockCount');
+            const showTrialTimeInput = document.getElementById('showTrialTime');
+            const hideTrialTimeInput = document.getElementById('hideTrialTime');
+            const answerTimeInput = document.getElementById('answerTime');
+
+            let sequence = [];
+            let userSequence = [];
+            let isPlaying = false;
+            let timers = [];
+            let currentBlockCount = 0;
+            let statPositive = 0;
+            let statNegative = 0;
+
+            function saveSettings() {
+                localStorage.setItem('cbtt_gridRows', gridRowsInput.value);
+                localStorage.setItem('cbtt_gridCols', gridColsInput.value);
+                localStorage.setItem('cbtt_blockCount', blockCountInput.value);
+                localStorage.setItem('cbtt_showTrialTime', showTrialTimeInput.value);
+                localStorage.setItem('cbtt_hideTrialTime', hideTrialTimeInput.value);
+                localStorage.setItem('cbtt_answerTime', answerTimeInput.value);
+            }
+
+            function loadSettings() {
+                gridRowsInput.value = localStorage.getItem('cbtt_gridRows') || '3';
+                gridColsInput.value = localStorage.getItem('cbtt_gridCols') || '3';
+                blockCountInput.value = localStorage.getItem('cbtt_blockCount') || '3';
+                showTrialTimeInput.value = localStorage.getItem('cbtt_showTrialTime') || '1000';
+                hideTrialTimeInput.value = localStorage.getItem('cbtt_hideTrialTime') || '1000';
+                answerTimeInput.value = localStorage.getItem('cbtt_answerTime') || '1000';
+            }
+
+            function createBoard() {
+
+                const rows = parseInt(gridRowsInput.value);
+                const cols = parseInt(gridColsInput.value);
+                if (rows !== rows || cols !== cols || rows < 1 || cols < 1 || rows > 6 || cols > 6 || isNaN(rows) || isNaN(cols)) {
+                    return false;
+                }
+                gameBoard.innerHTML = '';
+                gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                for (let i = 0; i < rows * cols; i++) {
+                    const block = document.createElement('div');
+                    block.classList.add('block');
+                    block.dataset.index = i;
+                    block.style.placeSelf = 'center';
+                    block.style.width = `${Math.min(100, Math.floor(gameBoard.clientWidth / cols - 12))}px`;
+                    block.style.height = `${Math.min(100, Math.floor(gameBoard.clientWidth / rows - 12))}px`;
+                    block.addEventListener('click', () => handleBlockClick(i));
+                    gameBoard.appendChild(block);
+                }
+                return true;
+            }
+
+            function generateSequence() {
+                if (isPlaying) {
+                    return;
+                }
+                sequence = [];
+                const rows = parseInt(gridRowsInput.value);
+                const cols = parseInt(gridColsInput.value);
+                const blocks = Array.from({ length: rows * cols }, (_, i) => i);
+                for (let i = 0; i < currentBlockCount; i++) {
+                    const randomIndex = Math.floor(Math.random() * blocks.length);
+                    let block = blocks[randomIndex];
+                    if (block == null) {
+                        block = sequence[Math.floor(Math.random() * sequence.length)];
+                    }
+                    sequence.push(block);
+                    if (blocks.length > 0) {
+                        blocks.splice(randomIndex, 1);
+                    }
+                }
+            }
+
+            function showSequence() {
+                if (isPlaying) {
+                    return;
+                }
+                isPlaying = true;
+                startBtn.textContent = 'Stop';
+                startBtn.classList.add('stop');
+                resultDiv.textContent = `Blocks: ${currentBlockCount}`;
+                timerDiv.textContent = '-';
+                const blocks = document.querySelectorAll('.block');
+                let index = 0;
+
+                function nextBlock() {
+                    if (index >= sequence.length) {
+                        isPlaying = false;
+                        startAnswerTimer();
+                        return;
+                    }
+                    resultDiv.textContent = `Blocks: ${index + 1}/${currentBlockCount}`;
+                    blocks[sequence[index]].classList.add('active');
+                    timers.push(setTimeout(() => {
+                        blocks[sequence[index]].classList.remove('active');
+                        timers.push(setTimeout(() => {
+                            index++;
+                            nextBlock();
+                        }, parseInt(hideTrialTimeInput.value)));
+                    }, parseInt(showTrialTimeInput.value)));
+                }
+
+                nextBlock();
+            }
+
+            function startAnswerTimer() {
+                const answerTime = parseInt(answerTimeInput.value);
+                let timeLeft = answerTime * sequence.length;
+                timerDiv.textContent = `Time left: ${(timeLeft / 1000).toFixed(1)}s`;
+
+                function updateTimer() {
+                    timeLeft -= 100;
+                    if (timeLeft <= 0) {
+                        if (userSequence.length < sequence.length && !isPlaying) {
+                            endGame(false);
+                        }
+                        return;
+                    }
+                    timerDiv.textContent = `Time left: ${(timeLeft / 1000).toFixed(1)}s`;
+                    timers.push(setTimeout(updateTimer, 100));
+                }
+
+                timers.push(setTimeout(updateTimer, 100));
+            }
+
+            function handleBlockClick(index) {
+                if (isPlaying) return;
+                if (startBtn.textContent === 'Start') {
+                    return;
+                }
+                userSequence.push(index);
+                const block = document.querySelector(`.block[data-index="${index}"]`);
+                block.classList.add('active');
+                setTimeout(() => block.classList.remove('active'), 200);
+
+                if (userSequence[userSequence.length - 1] !== sequence[userSequence.length - 1]) {
+                    block.classList.add('incorrect');
+                    endGame(false);
+                } else if (userSequence.length === sequence.length) {
+                    block.classList.add('correct');
+                    endGame(true);
+                }
+            }
+
+            function endGame(success) {
+                isPlaying = false;
+                startBtn.textContent = 'Start';
+                startBtn.classList.remove('stop');
+                startBtn.disabled = false;
+                timers.forEach(clearTimeout);
+                timers = [];
+                userSequence = [];
+                timerDiv.textContent = '-';
+
+                const blocks = document.querySelectorAll('.block');
+                blocks.forEach(block => {
+                    block.classList.remove('correct', 'incorrect');
+                });
+
+                if (!success) {
+                    statNegative += 1;
+                    resultDiv.textContent = `Incorrect! Game Over (+${statPositive}/-${statNegative})`;
+                    currentBlockCount = parseInt(blockCountInput.value);
+                    return;
+                }
+
+                currentBlockCount++;
+                blockCountInput.value = currentBlockCount;
+                saveSettings();
+                statPositive += 1;
+                resultDiv.textContent = 'Correct! Starting next sequence...';
+                setTimeout(() => {
+                    generateSequence();
+                    showSequence();
+                }, 1750);
+            }
+
+            function stopGame() {
+                timers.forEach(clearTimeout);
+                timers = [];
+                isPlaying = false;
+                startBtn.textContent = 'Start';
+                startBtn.classList.remove('stop');
+                startBtn.disabled = false;
+                userSequence = [];
+                currentBlockCount = parseInt(blockCountInput.value);
+                resultDiv.textContent = `Game stopped (+${statPositive}/-${statNegative})`;
+                timerDiv.textContent = '-';
+                const blocks = document.querySelectorAll('.block');
+                blocks.forEach(block => {
+                    block.classList.remove('active', 'correct', 'incorrect');
+                });
+            }
+
+            startBtn.addEventListener('click', () => {
+                if (isPlaying || startBtn.textContent === 'Stop') {
+                    stopGame();
+                    return;
+                }
+
+                const rows = parseInt(gridRowsInput.value);
+                const cols = parseInt(gridColsInput.value);
+                const blockCount = parseInt(blockCountInput.value);
+                const trialTime = parseInt(showTrialTimeInput.value);
+                const answerTime = parseInt(answerTimeInput.value);
+                if (rows !== rows || cols !== cols || rows > 6 || cols > 6 || blockCount < 1 || trialTime < 1 || trialTime > 100000 || answerTime < 1 || answerTime > 100000 ||
+                    isNaN(rows) || isNaN(cols) || isNaN(blockCount) || isNaN(trialTime) || isNaN(answerTime)) {
+                    resultDiv.textContent = 'Invalid settings!';
+                    return false;
+                }
+
+                currentBlockCount = blockCount;
+                createBoard();
+                saveSettings();
+                generateSequence();
+                showSequence();
+            });
+
+            [gridRowsInput, gridColsInput, blockCountInput, showTrialTimeInput, answerTimeInput].forEach(input => {
+                input.addEventListener('change', saveSettings);
+                input.addEventListener('change', createBoard);
+            });
+
+            loadSettings();
+            createBoard();
+        });
+    </script>
+</body>
+</html>
