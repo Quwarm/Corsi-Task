@@ -37,6 +37,11 @@
             margin-bottom: 20px;
         }
 
+        input[type="checkbox"] {
+            transform: scale(1.3);
+            margin: 5px;
+        }
+
         .settings {
             display: flex;
             flex-direction: column;
@@ -47,7 +52,8 @@
         .settings label {
             display: flex;
             flex-direction: column;
-            font-size: 0.9em;
+            font-size: 1em;
+            margin: 5px 0px;
         }
 
         .settings input {
@@ -144,7 +150,7 @@
 
             .settings input,
             .settings button {
-                font-size: 0.9em;
+                font-size: 1em;
                 padding: 6px;
             }
 
@@ -178,6 +184,9 @@
         <div class="result" id="result">Status</div>
         <div class="settings">
             <button id="startBtn">Start</button>
+             <label>
+                <input type="checkbox" id="backwardTaskType"> <span>Backward</span>
+            </label>
             <label>
                 Grid rows:
                 <input type="number" id="gridRows" min="2" max="6" value="3">
@@ -216,6 +225,7 @@
             const showTrialTimeInput = document.getElementById('showTrialTime');
             const hideTrialTimeInput = document.getElementById('hideTrialTime');
             const answerTimeInput = document.getElementById('answerTime');
+            const backwardTaskTypeToggle = document.getElementById('backwardTaskType');
 
             let sequence = [];
             let userSequence = [];
@@ -232,6 +242,7 @@
                 localStorage.setItem('cbtt_showTrialTime', showTrialTimeInput.value);
                 localStorage.setItem('cbtt_hideTrialTime', hideTrialTimeInput.value);
                 localStorage.setItem('cbtt_answerTime', answerTimeInput.value);
+                localStorage.setItem('cbtt_backward', backwardTaskTypeToggle.checked);
             }
 
             function loadSettings() {
@@ -241,6 +252,7 @@
                 showTrialTimeInput.value = localStorage.getItem('cbtt_showTrialTime') || '1000';
                 hideTrialTimeInput.value = localStorage.getItem('cbtt_hideTrialTime') || '1000';
                 answerTimeInput.value = localStorage.getItem('cbtt_answerTime') || '1000';
+                backwardTaskTypeToggle.checked = localStorage.getItem('cbtt_backward') === 'true';
             }
 
             function createBoard() {
@@ -347,8 +359,11 @@
                 const block = document.querySelector(`.block[data-index="${index}"]`);
                 block.classList.add('active');
                 setTimeout(() => block.classList.remove('active'), 200);
-
-                if (userSequence[userSequence.length - 1] !== sequence[userSequence.length - 1]) {
+                let fIndex = (index) => index;
+                if (backwardTaskTypeToggle.checked) {
+                    fIndex = (index) => sequence.length - index - 1;
+                }
+                if (userSequence[userSequence.length - 1] !== sequence[fIndex(userSequence.length - 1)]) {
                     block.classList.add('incorrect');
                     endGame(false);
                 } else if (userSequence.length === sequence.length) {
@@ -431,9 +446,13 @@
                 showSequence();
             });
 
-            [gridRowsInput, gridColsInput, blockCountInput, showTrialTimeInput, answerTimeInput].forEach(input => {
+            [gridRowsInput, gridColsInput].forEach(input => {
                 input.addEventListener('change', saveSettings);
                 input.addEventListener('change', createBoard);
+            });
+
+            [blockCountInput, showTrialTimeInput, answerTimeInput, backwardTaskTypeToggle].forEach(input => {
+                input.addEventListener('change', saveSettings);
             });
 
             loadSettings();
