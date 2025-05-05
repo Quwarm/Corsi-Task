@@ -334,7 +334,7 @@
                         startAnswerTimer();
                         return;
                     }
-                    resultDiv.textContent = `Blocks: ${index + 1}/${currentBlockCount}`;
+                    resultDiv.textContent = `Block: ${index + 1}/${currentBlockCount}`;
                     blocks[sequence[index]].classList.add('active');
                     timers.push(setTimeout(() => {
                         blocks[sequence[index]].classList.remove('active');
@@ -381,6 +381,7 @@
                 if (backwardTaskTypeToggle.checked) {
                     fIndex = (index) => sequence.length - index - 1;
                 }
+                resultDiv.textContent = `Block: ${userSequence.length}/${sequence.length}`;
                 if (userSequence[userSequence.length - 1] !== sequence[fIndex(userSequence.length - 1)]) {
                     block.classList.add('incorrect');
                     endGame(false);
