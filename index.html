@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Corsi Block-Tapping Task</title>
     <style>
@@ -15,17 +16,15 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #1a1a1a;
-            color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            color: #E0E0E0;
+            text-align: center;
             padding: 10px;
         }
 
         .container {
+            display: block;
             max-width: 600px;
-            width: 100%;
+            margin: 0 auto;
             text-align: center;
             background: #2a2a2a;
             padding: 20px;
@@ -36,17 +35,20 @@
         h1 {
             font-size: 1.5em;
             margin-bottom: 20px;
+            display: block;
         }
 
         input[type="checkbox"] {
             transform: scale(1.3);
             margin: 5px;
+            vertical-align: middle;
         }
 
         a {
             text-decoration: none;
             font-weight: bold;
             color: #555;
+            display: inline-block;
         }
 
         a:hover {
@@ -54,20 +56,19 @@
         }
 
         .settings {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: block;
             margin-bottom: 20px;
         }
 
         .settings label {
-            display: flex;
-            flex-direction: column;
+            display: block;
             font-size: 1em;
-            margin: 5px 0px;
+            margin: 5px 0;
         }
 
         .settings input {
+            display: block;
+            width: 100%;
             padding: 8px;
             margin-top: 5px;
             border: 1px solid #444;
@@ -76,9 +77,12 @@
             background: #333;
             color: #e0e0e0;
             text-align: center;
+            font-size: 1em;
         }
 
         .settings button {
+            display: block;
+            width: 100%;
             padding: 10px;
             background-color: #2ecc71;
             color: #1a1a1a;
@@ -102,14 +106,14 @@
         }
 
         .game {
-            display: grid;
-            gap: 12px;
-            place-content: center;
+            display: block;
             margin: 0 auto 20px;
             padding: 10px;
+            text-align: center;
         }
 
         .block {
+            display: inline-block;
             width: 60px;
             height: 60px;
             background: linear-gradient(145deg, #444, #333);
@@ -140,12 +144,14 @@
         }
 
         .result {
+            display: block;
             font-size: 1.2em;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
         .timer {
+            display: block;
             font-size: 1em;
             margin-bottom: 10px;
         }
@@ -173,20 +179,12 @@
                 width: 50px;
                 height: 50px;
             }
-
-            .game {
-                gap: 10px;
-            }
         }
 
         @media (max-width: 400px) {
             .block {
                 width: 40px;
                 height: 40px;
-            }
-
-            .game {
-                gap: 8px;
             }
         }
     </style>
@@ -287,21 +285,24 @@
             }
 
             function createBoard() {
-
                 const rows = parseInt(gridRowsInput.value);
                 const cols = parseInt(gridColsInput.value);
-                if (rows !== rows || cols !== cols || rows < 1 || cols < 1 || rows > 6 || cols > 6 || isNaN(rows) || isNaN(cols)) {
+                if (isNaN(rows) || isNaN(cols) || rows < 1 || cols < 1 || rows > 6 || cols > 6) {
                     return false;
                 }
                 gameBoard.innerHTML = '';
-                gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
                 for (let i = 0; i < rows * cols; i++) {
+                    if (i > 0 && i % cols === 0) {
+                        gameBoard.appendChild(document.createElement('br'));
+                    }
                     const block = document.createElement('div');
                     block.classList.add('block');
                     block.dataset.index = i;
-                    block.style.placeSelf = 'center';
-                    block.style.width = `${Math.min(100, Math.floor(gameBoard.clientWidth / cols - 12))}px`;
-                    block.style.height = `${Math.min(100, Math.floor(gameBoard.clientWidth / rows - 12))}px`;
+                    const m1 = Math.max(30, Math.floor(gameBoard.clientWidth / cols - 10));
+                    const m2 = Math.max(30, Math.floor(gameBoard.clientWidth / rows - 10));
+                    const mn = Math.min(m1, m2);
+                    block.style.width = `${mn}px`;
+                    block.style.height = `${mn}px`;
                     block.addEventListener('click', () => handleBlockClick(i));
                     gameBoard.appendChild(block);
                 }
@@ -382,8 +383,7 @@
             }
 
             function handleBlockClick(index) {
-                if (isPlaying) return;
-                if (startBtn.textContent === 'Start') {
+                if (isPlaying || startBtn.textContent === 'Start') {
                     return;
                 }
                 userSequence.push(index);
@@ -465,8 +465,7 @@
                 const blockCount = parseInt(blockCountInput.value);
                 const trialTime = parseInt(showTrialTimeInput.value);
                 const answerTime = parseInt(answerTimeInput.value);
-                if (rows !== rows || cols !== cols || rows > 6 || cols > 6 || blockCount < 1 || trialTime < 1 || trialTime > 100000 || answerTime < 1 || answerTime > 100000 ||
-                    isNaN(rows) || isNaN(cols) || isNaN(blockCount) || isNaN(trialTime) || isNaN(answerTime)) {
+                if (isNaN(rows) || isNaN(cols) || rows > 6 || cols > 6 || blockCount < 1 || trialTime < 1 || trialTime > 100000 || answerTime < 1 || answerTime > 100000) {
                     resultDiv.textContent = 'Invalid settings!';
                     return false;
                 }
